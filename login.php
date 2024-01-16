@@ -57,7 +57,7 @@
         $username = $_POST["username"];
         $password = $_POST["password"];
 
-        $data = $connection->prepare("SELECT user_id, username, password FROM users WHERE username = ?");
+        $data = $connection->prepare("SELECT user_id, username, password, is_admin FROM users WHERE username = ?");
         $data->bind_param("s", $username);
         $data->execute();
         $result = $data->get_result();
@@ -69,8 +69,9 @@
                 $_SESSION["loggedin"] = true;
                 $_SESSION["user_id"] = $row["user_id"];
                 $_SESSION["username"] = $username;
+                $_SESSION["is_admin"] = $row["is_admin"];
 
-                header("Location: main.php");
+                header("Location: index.php");
                 exit;
             } else {
                 echo "<script>alert('Invalid password. Try again.');</script>";
