@@ -5,22 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
     <link rel="stylesheet" href="main_style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 <body>
-    <div class="top-right-buttons">
-        <button onclick="window.location.href='login.php'">Sign Out</button>
-        <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']) : ?>
-            <button onclick="window.location.href='admin_page.php'">Go to Admin Page</button>
-        <?php endif; ?>
-    </div>
-
-    <h2 class="centered-title">Welcome, User!</h2>
-
     <?php
     session_start();
 
     error_reporting(E_ALL);
-    ini_set('display_errors', 0);
+    ini_set('display_errors', 1);
 
     if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
         header("Location: login.php");
@@ -28,6 +20,7 @@
     }
 
     require "autorisation.php";
+    include "navbar.php";
 
     function clean_input($data) {
         $data = trim($data);
@@ -79,6 +72,7 @@
     $tags_check->execute();
     $tags_result = $tags_check->get_result();
     ?>
+    <h2 class="centered-title">Welcome, User!</h2>
     
     <div class="form-container">
         <h3>Add New Tag</h3>
@@ -154,5 +148,6 @@ $transactions_check->close();
 $connection->close();
 ?>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
 </html>
