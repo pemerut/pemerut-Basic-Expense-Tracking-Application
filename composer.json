@@ -1,0 +1,18 @@
+{
+    "name": "pemerut/test",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Pemerut\\Test\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "pemerut"
+        }
+    ],
+    "require": {
+        "vlucas/phpdotenv": "^5.6"
+    }
+}
