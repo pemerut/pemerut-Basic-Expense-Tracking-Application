@@ -1,19 +1,17 @@
 <?php
-session_start();
-require "autorisation.php";
+require_once __DIR__ . '/vendor/autoload.php';
 
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !isset($_GET['id'])) {
-    header("Location: login.php");
-    exit;
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
+$host = $_ENV['DB_HOST'];
+$myname = $_ENV['DB_USERNAME'];
+$password = $_ENV['DB_PASSWORD'];
+$database = $_ENV['DB_DATABASE'];
+
+$connection = new mysqli($host, $myname, $password, $database);
+
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
 }
-
-$tag_id = $_GET['id'];
-$user_id = $_SESSION["user_id"];
-
-$data = $connection->prepare("DELETE FROM tags WHERE tag_id = ? AND user_id = ?");
-$data->bind_param("ii", $tag_id, $user_id);
-$data->execute();
-
-header("Location: user_data.php");
-exit;
 ?>
