@@ -23,21 +23,22 @@
     require "autorisation.php";
     include 'navbar.php';
 
-    $data = $connection->prepare("SELECT tag_id, tag_name, type, currency FROM tags WHERE user_id = ?");
+    $data = $connection->prepare("SELECT tag_id, tag_name FROM tags WHERE user_id = ?");
     $data->bind_param("i", $_SESSION["user_id"]);
     $data->execute();
     $tags_result = $data->get_result();
 
     echo "<div class='transactions-container'>";
     if ($tags_result->num_rows > 0) {
-        echo "<h2 class='centered-title'>Tags</h2>";
-        echo "<table class='transactions-table'><tr><th>Name</th><th>Type</th><th>Currency</th><th>Action</th></tr>";
+        echo "<h2 class='centered-title'>User's Tags</h2>";
+        echo "<table class='transactions-table'><tr><th>Name</th><th>Action</th></tr>";
         while ($row = $tags_result->fetch_assoc()) {
             echo "<tr>
                     <td>" . htmlspecialchars($row["tag_name"]) . "</td>
-                    <td>" . htmlspecialchars($row["type"]) . "</td>
-                    <td>" . htmlspecialchars($row["currency"]) . "</td>
-                    <td><a href='delete_tag.php?id=" . $row["tag_id"] . "' onclick='return confirm(\"Are you sure you want to delete this tag?\");'>Delete</a></td>
+                    <td>
+                        <a href='delete_tag.php?id=" . $row["tag_id"] . "' onclick='return confirm(\"Are you sure you want to delete this tag?\");'>Delete</a>
+                        <a href='edit_tag.php?id=" . $row["tag_id"] . "'>Edit</a>
+                    </td>
                   </tr>";
         }
         echo "</table>";
@@ -47,83 +48,98 @@
     echo "</div>";
 
     $report_result = null;
-    if (isset($_POST['generate_report'])) {
-        $report_date = $_POST['report_date'];
-        $report_tag = $_POST['report_tag'];
+    $totalExpense = 0;
+    $selected_currency = '';
+    if (isset($_POST['generate_report']) && isset($_POST['currency'])) {
+        $start_date = $_POST['start_date'];
+        $end_date = $_POST['end_date'];
+        $selected_currency = $_POST['currency'];
     
-        $sql = "SELECT amount, tag_name FROM transactions t JOIN tags tg ON t.tag_id = tg.tag_id WHERE t.user_id = ?";
-        $params = [$_SESSION["user_id"]];
-    
-        if (!empty($report_date)) {
-            $sql .= " AND DATE(t.date) = ?";
-            $params[] = $report_date;
-        }
-    
-        if (!empty($report_tag) && $report_tag !== 'All Tags') {
-            $sql .= " AND t.tag_id = ?";
-            $params[] = $report_tag;
-        }
+        $sql = "SELECT t.amount, t.type, COALESCE(tg.tag_name, 'No Tag') AS tag_name FROM transactions t LEFT JOIN tags tg ON t.tag_id = tg.tag_id WHERE t.user_id = ? AND t.currency = ? AND DATE(t.date) BETWEEN ? AND ? AND t.type = 'expense'";
+        $params = [$_SESSION["user_id"], $selected_currency, $start_date, $end_date];
     
         $report_data = $connection->prepare($sql);
-        $report_data->bind_param(str_repeat("s", count($params)), ...$params);
+        $report_data->bind_param("ssss", ...$params);
         $report_data->execute();
         $report_result = $report_data->get_result();
+    
+        while ($row = $report_result->fetch_assoc()) {
+            $totalExpense += $row['amount'];
+        }
+        $report_result->data_seek(0);
     }
+    
+    
 ?>
-<h2 class="centered-title">User's Tags</h2>
-<div class="form-container">
-    <h3>Generate Report</h3>
-    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-        <label for="report_date">Date:</label>
-        <input type="date" name="report_date"><br>
+    <div class="form-container">
+        <h3 class='centered-title'>Generate Report</h3>
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+        <label for="start_date">Start Date:</label>
+        <input type="date" name="start_date" required><br>
 
-        <label for="report_tag">Tag:</label>
-        <select name="report_tag">
-            <option value="">All Tags</option>
-            <?php
-            $tags_result->data_seek(0);
-            while ($row = $tags_result->fetch_assoc()) {
-                echo "<option value=\"" . $row["tag_id"] . "\">" . $row["tag_name"] . "</option>";
-            }
-            ?>
+        <label for="end_date">End Date:</label>
+        <input type="date" name="end_date" required><br>
+
+        <label for="currency">Currency:</label>
+        <select name="currency" required>
+            <option value="EUR">Euro (EUR)</option>
+            <option value="USD">US Dollar (USD)</option>
+            <option value="BGN">Bulgarian Lev (BGN)</option>
         </select><br>
 
-        <button type="submit" name="generate_report">Generate Report</button>
-    </form>
-</div>
-
-<?php if (isset($report_result) && $report_result->num_rows > 0) : ?>
-    <div class="chart-container" style="position: relative; height:40vh; width:80vw">
-        <canvas id="reportChart"></canvas>
+            <button type="submit" name="generate_report">Generate Report</button>
+        </form>
     </div>
+    <?php if (isset($report_result) && $report_result->num_rows > 0 && !empty($selected_currency)) : ?>
+    <div class="form-container">
+        <div class="total-report">
+            <h3 class='centered-title'>Generated Report</h3>
+            <p>Total Expenditure in <?php echo htmlspecialchars($selected_currency); ?>: <?php echo $totalExpense; ?></p>
+        </div>
+    </div>
+    <div class="d-flex justify-content-center align-items-center" style="height: 60vh;">
+        <div class="chart-container">
+            <canvas id="reportChart"></canvas>
+        </div>
+    </div>
+
     <script>
         const ctx = document.getElementById('reportChart').getContext('2d');
         const chartData = {
             labels: [],
             datasets: [{
-                label: 'Report Data',
+                label: 'Expense Data',
                 data: [],
-                backgroundColor: []
+                backgroundColor: [],
+                hoverBackgroundColor: []
             }]
         };
 
+        const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#C9CBCF', '#4D5360'];
+        let colorIndex = 0;
+
         <?php while ($row = $report_result->fetch_assoc()) : ?>
-            chartData.labels.push("<?php echo $row['tag_name']; ?>");
-            chartData.datasets[0].data.push(<?php echo $row['amount']; ?>);
-            chartData.datasets[0].backgroundColor.push('randomColorFunction()');
+            if ("<?php echo $row['type']; ?>" === "expense") {
+                chartData.labels.push("<?php echo $row['tag_name']; ?>");
+                chartData.datasets[0].data.push(<?php echo $row['amount']; ?>);
+                chartData.datasets[0].backgroundColor.push(colors[colorIndex % colors.length]);
+                chartData.datasets[0].hoverBackgroundColor.push(colors[colorIndex % colors.length]);
+                colorIndex++;
+            }
         <?php endwhile; ?>
 
-        new Chart(ctx, {
+        const myPieChart = new Chart(ctx, {
             type: 'pie',
             data: chartData,
             options: { responsive: true, maintainAspectRatio: false }
         });
     </script>
-<?php endif;
+<?php endif; 
 
 $data->close();
 $connection->close();
 ?>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>
 </html>
