@@ -30,6 +30,7 @@
 
     echo "<div class='transactions-container'>";
     if ($tags_result->num_rows > 0) {
+        echo "<h2 class='centered-title'>Tags</h2>";
         echo "<table class='transactions-table'><tr><th>Name</th><th>Type</th><th>Currency</th><th>Action</th></tr>";
         while ($row = $tags_result->fetch_assoc()) {
             echo "<tr>
@@ -118,13 +119,8 @@
             options: { responsive: true, maintainAspectRatio: false }
         });
     </script>
-<?php endif; ?>
+<?php endif;
 
-<div class="form-container" style="text-align: center;">
-    <button onclick="window.location.href='index.php'">Back to the Main Page</button>
-</div>
-
-<?php
 $data->close();
 $connection->close();
 ?>
