@@ -4,48 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            text-align: center;
-        }
-        form {
-            display: inline-block;
-            margin-top: 20px;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        input[type="text"], input[type="email"], input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 14px 20px;
-            margin: 8px 0;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            border-radius: 4px;
-        }
-        button:hover {
-            opacity: 0.8;
-        }
-    </style>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+    <link rel="stylesheet" href="main_style.css">
 </head>
 <body>
-    <h2>User Login</h2>
-
-    <?php
+<?php
     session_start();
 
     error_reporting(E_ALL);
@@ -74,26 +39,28 @@
                 header("Location: index.php");
                 exit;
             } else {
-                echo "<script>alert('Invalid password. Try again.');</script>";
+                echo "<script>$(function(){toastr.error('Invalid password. Try again.')});</script>";
             }
         } else {
-            echo "<script>alert('Username does not exist.');</script>";
+            echo "<script>$(function(){toastr.error('Username does not exist.')});</script>";
         }
 
         $data->close();
         $connection->close();
     }
     ?>
-    <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required><br>
+    <div class="form-container">
+        <h2>User Login</h2>
+        <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
+            <label for="username">Username:</label>
+            <input type="text" name="username" required><br>
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" required><br>
+            <label for="password">Password:</label>
+            <input type="password" name="password" required><br>
 
-        <button type="submit">Login</button>
-    </form>
-    <p>Don't have an account? <a href="signup.php">Signup here</a>.</p>
-
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="signup.php">Signup here</a>.</p>
+    </div>
 </body>
 </html>
