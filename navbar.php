@@ -10,7 +10,7 @@
                         <a class="nav-link btn btn-outline-secondary" href="index.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-outline-secondary" href="user_data.php">Data</a>
+                        <a class="nav-link btn btn-outline-secondary" href="user_data.php">User's Data</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link btn btn-outline-secondary" href="login.php">Sign out</a>
