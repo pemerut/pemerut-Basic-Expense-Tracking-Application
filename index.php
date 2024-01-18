@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     <link rel="stylesheet" href="main_style.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
@@ -40,9 +43,9 @@
         $check->execute();
     
         if ($check->affected_rows > 0) {
-            echo "<script>alert('Tag added successfully!');</script>";
+            echo "<script>$(function(){toastr.success('Tag added successfully!')});</script>";
         } else {
-            echo "<script>alert('Error: Could not add the tag.');</script>";
+            echo "<script>$(function(){toastr.error('Error: Could not add the tag.')});</script>";
         }
     
         $check->close();
@@ -59,9 +62,9 @@
         $check->execute();
     
         if ($check->affected_rows > 0) {
-            echo "<script>alert('Transaction added successfully!');</script>";
+            echo "<script>$(function(){toastr.success('Transaction added successfully!')});</script>";
         } else {
-            echo "<script>alert('Error: Could not add the transaction.');</script>";
+            echo "<script>$(function(){toastr.error('Error: Could not add the transaction.')});</script>";
         }
     
         $check->close();
@@ -96,8 +99,8 @@
         </form>
     </div>
 
-    <h3 class="centered-title">Add Expense</h3>
     <div class="form-container">
+    <h3 class="centered-title">Add Expense</h3>
         <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
             <label for="date">Date:</label>
             <input type="date" name="date" required><br>
@@ -116,13 +119,8 @@
             <button type="submit" name="add_expense">Add Expense</button>
         </form>
     </div>
-    <div class="form-container" style="text-align: center;">
-        <button onclick="window.location.href='user_data.php'">Go to User Data</button>
-    </div>
+    <h3 class='centered-title'>Your Transactions</h3>
 <?php
-
-echo "<h3 class='centered-title'>Your Transactions</h3>";
-
 $transactions_check = $connection->prepare("SELECT t.transaction_id, t.date, t.amount, tg.tag_name, tg.currency FROM transactions t JOIN tags tg ON t.tag_id = tg.tag_id WHERE t.user_id = ?");
 $transactions_check->bind_param("i", $_SESSION["user_id"]);
 $transactions_check->execute();
@@ -134,7 +132,7 @@ if ($transactions_result->num_rows > 0) {
         echo "<tr>
                 <td>" . htmlspecialchars($row["tag_name"]) . "</td>
                 <td>" . htmlspecialchars($row["amount"]) . "</td>
-                <td>" . htmlspecialchars($row["currency"]) . "</td> <!-- Displaying currency -->
+                <td>" . htmlspecialchars($row["currency"]) . "</td>
                 <td>" . htmlspecialchars($row["date"]) . "</td>
                 <td><a href='delete_transaction.php?id=" . $row["transaction_id"] . "' onclick='return confirm(\"Are you sure you want to delete this transaction?\");'>Delete</a></td>
               </tr>";
